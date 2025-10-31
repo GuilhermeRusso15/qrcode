@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de QR Code | Atividade MSEP</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        /* Estilos CSS alinhados com a usabilidade e clareza do SENAI */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+        }
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            width: 100%;
+        }
+        .form-area, .qr-area {
+            flex: 1;
+            min-width: 250px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+        input[type="text"], select, input[type="color"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input[type="color"] {
+            height: 40px;
+            padding: 2px;
+        }
+        input:focus, select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            transition: background-color 0.3s;
+            font-weight: 700;
+        }
+        button:hover {
+            background-color: #1e7e34;
+        }
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            margin-top: 20px;
+            padding: 10px;
+            overflow: hidden; /* Garante que o QR não transborde */
+        }
+        .message {
+            text-align: center;
+            color: #6c757d;
+            margin-top: 15px;
+        }
+        /* Responsividade básica */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .form-area {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Gerador de QR Code</h1>
+
+        <div class="form-area">
+            <h2>Configurações</h2>
+            
+            <div class="form-group">
+                <label for="url">Link / Texto para o QR Code:</label>
+                <input type="text" id="url" placeholder="https://www.senai.br" required>
+            </div>
+
+            <div class="form-group">
+                <label for="size">Tamanho (Pixels):</label>
+                <select id="size">
+                    <option value="150">150x150</option>
+                    <option value="250" selected>250x250</option>
+                    <option value="350">350x350</option>
+                    <option value="450">450x450</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="colorDark">Cor do QR Code (Foreground):</label>
+                <input type="color" id="colorDark" value="#000000">
+            </div>
+
+            <div class="form-group">
+                <label for="colorLight">Cor de Fundo (Background):</label>
+                <input type="color" id="colorLight" value="#ffffff">
+            </div>
+
+            <button onclick="generateQRCode()">Gerar QR Code</button>
+            
+            <div id="message" class="message"></div>
+        </div>
+
+        <div class="qr-area">
+            <h2></h2>
+            <div id="qrcode">
+                <p>O QR Code será exibido aqui.</p>
+            </div>
+            <p class="message">O QR Code é gerado em tempo real com base nas suas configurações.</p>
+        </div>
+    </div>
+
+    <script>
+        // Inicializa a variável para o objeto QR Code
+        let qrcodeInstance = null;
+
+        /**
+         * Função principal para gerar o QR Code
+         */
+        function generateQRCode() {
+            // 1. Obter os valores dos campos
+            const urlInput = document.getElementById('url').value;
+            const size = parseInt(document.getElementById('size').value);
+            const colorDark = document.getElementById('colorDark').value;
+            const colorLight = document.getElementById('colorLight').value;
+            const qrContainer = document.getElementById('qrcode');
+            const messageElement = document.getElementById('message');
+
+            // 2. Validação (Requisito MSEP)
+            if (urlInput.trim() === "") {
+                messageElement.textContent = "Por favor, insira um Link ou Texto para gerar o QR Code.";
+                messageElement.style.color = '#dc3545';
+                qrContainer.innerHTML = '<p>O QR Code será exibido aqui.</p>';
+                return;
+            }
+            
+            // 3. Limpar a Área de Exibição
+            // Remove o QR Code anterior, se existir
+            qrContainer.innerHTML = '';
+            messageElement.textContent = "";
+
+            // 4. Configurações do QR Code
+            const options = {
+                text: urlInput,
+                width: size,
+                height: size,
+                colorDark: colorDark,      // Cor principal do QR Code
+                colorLight: colorLight,    // Cor de fundo do QR Code
+                correctLevel : QRCode.CorrectLevel.H // Nível de correção de erro (Alto)
+            };
+
+            // 5. Geração do QR Code
+            try {
+                // Cria uma nova instância do QR Code no container 'qrcode'
+                qrcodeInstance = new QRCode(qrContainer, options);
+                
+                messageElement.textContent = "QR Code gerado com sucesso! Utilize um leitor para testar.";
+                messageElement.style.color = '#28a745';
+
+            } catch (error) {
+                messageElement.textContent = "Erro ao gerar o QR Code. Verifique as configurações.";
+                messageElement.style.color = '#dc3545';
+                console.error("Erro na geração do QR Code:", error);
+            }
+        }
+    </script>
+
+</body>
+</html>
