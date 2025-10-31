@@ -1,0 +1,2 @@
+# qrcode
+Atividade sobre qrcode
